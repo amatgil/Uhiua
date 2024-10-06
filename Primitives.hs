@@ -26,5 +26,25 @@ pop _ = error "Not enough arguments for pop"
 
 on :: Op -> Op
 on f (S []) = error "Not enough arguments for onF"
-on f s@(S (v:vs)) = let S vs' = f s
-             in S $ v:vs'
+on f s@(S (v : vs)) =
+  let S vs' = f s
+   in S $ v : vs'
+
+
+--- Constants
+eta :: Val
+eta = Number $ Prelude.pi / 4
+
+pi :: Val
+pi = Number Prelude.pi
+
+tau :: Val
+tau = Number $ Prelude.pi * 2
+
+
+--- Monadic Pervasive
+negate :: Op
+negate = fmap Prelude.negate
+
+not :: Op
+not = fmap (1 -)

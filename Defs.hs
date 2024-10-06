@@ -1,21 +1,43 @@
 module Defs where
 import Data.List
+import Data.Complex
 ---- DEFS ----
 data Val
   = Number Double
-  | Complex Double Double
+  | Comp (Complex Double)
   | Char Char
   | Array [Word] [Val]
 
 newtype Stack v = S [v]
 
+instance Num Val where
+  (+) :: Val -> Val -> Val 
+  (+) (Number n1) (Number n2) = Number $ n1 + n2
+  (+) (Comp c1) (Comp c2) = Comp $ c1 + c2
+  (+) (Char c1) (Char c2) = error "Cannot add characters"
+  (+) (Array s1 vs1) (Array s2 vs2) = error "Cannot add arrays yet '>.>"
+  (-) :: Val -> Val -> Val
+  (-) v1 v2 = (+) v1 $ negate v2
+  (*) :: Val -> Val -> Val
+  (*) = undefined
+  negate :: Val -> Val
+  negate (Number x) = Number $ -x
+  negate (Comp c) = Comp $ -c
+  negate (Char c) = error "Cannot negate char"
+  negate (Array shape vals) = Array shape (fmap negate vals)
+  abs :: Val -> Val
+  abs = undefined 
+  signum :: Val -> Val
+  signum = undefined 
+  fromInteger :: Integer -> Val
+  fromInteger = Number . fromInteger
 
 instance Show Val where
   show :: Val -> String
   show (Number x) = show x
-  show (Complex r i) = show r ++ "r" ++ show i ++ "i"
+  show (Comp c) = show c
   show (Char c) = "@" ++ show c
-  show (Array shape values) = show values
+  show (Array shape values) = "Shape: " ++ show shape ++ " ==> "++ show values
 
 instance Show v => Show (Stack v) where
   show :: Stack v -> String
