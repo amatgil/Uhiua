@@ -3,6 +3,7 @@ import Lib
 import Prelude hiding (flip, Char, negate)
 import Data.Complex
 
+main :: IO ()
 main =
   let s =
         S

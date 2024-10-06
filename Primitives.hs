@@ -1,5 +1,8 @@
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+{-# HLINT ignore "Use lambda-case" #-}
 module Primitives where
 import Defs
+import GHC.Float (floorDouble, roundDouble, ceilingDouble)
 
 --- Stack Manip
 type Op = Stack Val -> Stack Val
@@ -21,12 +24,12 @@ flip (S (v1:v2:vs)) = S $ v2:v1:vs
 flip _ = error "Not enough arguments for flip"
 
 pop :: Op
-pop (S (v1:vs)) = S vs
+pop (S (_:vs)) = S vs
 pop _ = error "Not enough arguments for pop"
 
 on :: Op -> Op
-on f (S []) = error "Not enough arguments for onF"
-on f s@(S (v : vs)) =
+on _ (S []) = error "Not enough arguments for onF"
+on f s@(S (v : _)) =
   let S vs' = f s
    in S $ v : vs'
 
@@ -48,3 +51,29 @@ negate = fmap Prelude.negate
 
 not :: Op
 not = fmap (1 -)
+
+abs :: Op
+abs = fmap Prelude.abs
+
+sign :: Op
+sign = fmap Prelude.signum
+
+sqrt :: Op
+sqrt = fmap (propagateMon Prelude.sqrt)
+
+sine :: Op
+sine = fmap (propagateMon sin)
+
+round :: Op
+round = fmap (propagateMon (fromIntegral . Prelude.round))
+
+ceiling :: Op
+ceiling = fmap (propagateMon (fromIntegral .Prelude.ceiling))
+
+floor :: Op
+floor = fmap (propagateMon (fromIntegral . Prelude.floor))
+
+
+-- Dyadic Pervasive
+equals :: Op
+equals (S (v1:v2:vs)) = undefined

@@ -14,21 +14,32 @@ instance Num Val where
   (+) :: Val -> Val -> Val 
   (+) (Number n1) (Number n2) = Number $ n1 + n2
   (+) (Comp c1) (Comp c2) = Comp $ c1 + c2
-  (+) (Char c1) (Char c2) = error "Cannot add characters"
-  (+) (Array s1 vs1) (Array s2 vs2) = error "Cannot add arrays yet '>.>"
+  (+) (Char _) (Char _) = error "Cannot add characters"
+  (+) (Array s1 vs1) (Array s2 vs2) = if s1 == s2 then Array s1 (zipWith (+) vs1 vs2) else error "Array shapes do not match"
+  (+) x y = error $ "Type error: cannot add " ++ typeOfVal x ++ " and " ++ typeOfVal y
+
   (-) :: Val -> Val -> Val
   (-) v1 v2 = (+) v1 $ negate v2
+
   (*) :: Val -> Val -> Val
-  (*) = undefined
+  (*) (Number n1) (Number n2) = Number $ n1 * n2
+  (*) (Comp c1) (Comp c2) = Comp $ c1 * c2
+  (*) (Char _) (Char _) = error "Cannot multiply characters"
+  (*) (Array s1 vs1) (Array s2 vs2) = if s1 == s2 then Array s1 (zipWith (*) vs1 vs2) else error "Array shapes do not match"
+  (*) x y = error $ "Type error: cannot multiply " ++ typeOfVal x ++ " and " ++ typeOfVal y
+
   negate :: Val -> Val
   negate (Number x) = Number $ -x
   negate (Comp c) = Comp $ -c
-  negate (Char c) = error "Cannot negate char"
+  negate (Char _) = error "Cannot negate char"
   negate (Array shape vals) = Array shape (fmap negate vals)
+
   abs :: Val -> Val
   abs = undefined 
+
   signum :: Val -> Val
   signum = undefined 
+
   fromInteger :: Integer -> Val
   fromInteger = Number . fromInteger
 
@@ -48,6 +59,7 @@ instance Show v => Show (Stack v) where
 
 instance Functor Stack where
   fmap :: (a -> b) -> Stack a -> Stack b
+  fmap _ (S []) = S []
   fmap f (S (v:vs)) = S (f v : fmap f vs)
 
 instance Applicative Stack where
@@ -58,3 +70,17 @@ instance Applicative Stack where
   (<*>) _ _ = S []
 
 -- Not a Monad, I don't think! 
+
+
+propagateMon :: (Double -> Double) -> Val -> Val
+propagateMon f v = case v of
+  (Number x) -> Number $ f x
+  (Comp (r :+ i)) -> Comp $ f r :+ f i
+  (Char _) -> error "Cannot apply monad to Char"
+  (Array shape vs) -> Array shape (fmap (propagateMon f) vs)
+
+typeOfVal :: Val -> String
+typeOfVal (Number _) = "Number"
+typeOfVal (Comp _) = "Complex"
+typeOfVal (Char _) = "Char"
+typeOfVal  (Array _ _) = "Array"
